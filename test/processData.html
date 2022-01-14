@@ -1,0 +1,59 @@
+<html>
+    <head>
+        <title>Process data</title>
+    </head>
+    <body>
+        <script>
+            const rawData = `{"message":"Spacetime Start","fields":[{"tags":[],"value":"Competition","name":"Robot"},{"tags":[],"value":2175,"name":"Team"},{"tags":[],"value":"Robot on!!!","name":"EventName"},{"tags":[],"value":1,"name":"ID"},{"tags":[],"value":-1,"name":"ParentID"}],"level":"INFO","timestamp":0}
+{"message":"Spacetime Start","fields":[{"tags":[],"value":"Competition","name":"Robot"},{"tags":[],"value":2175,"name":"Team"},{"tags":[],"value":"Robot enabled!!!","name":"EventName"},{"tags":[],"value":2,"name":"ID"},{"tags":[],"value":1,"name":"ParentID"}],"level":"INFO","timestamp":1}
+{"message":"Spacetime Start","fields":[{"tags":[],"value":"Competition","name":"Robot"},{"tags":[],"value":2175,"name":"Team"},{"tags":[],"value":"Motor Data","name":"EventName"},{"tags":[],"value":3,"name":"ID"},{"tags":[],"value":-1,"name":"ParentID"}],"level":"INFO","timestamp":3}
+{"message":"Spacetime End","fields":[{"tags":[],"value":"Competition","name":"Robot"},{"tags":[],"value":2175,"name":"Team"},{"tags":[],"value":"Robot on!!!","name":"EventName"},{"tags":[],"value":1,"name":"ID"},{"tags":[],"value":-1,"name":"ParentID"}],"level":"INFO","timestamp":4}
+{"message":"Spacetime End","fields":[{"tags":[],"value":"Competition","name":"Robot"},{"tags":[],"value":2175,"name":"Team"},{"tags":[],"value":"Robot enabled!!!","name":"EventName"},{"tags":[],"value":2,"name":"ID"},{"tags":[],"value":1,"name":"ParentID"}],"level":"INFO","timestamp":2}
+{"message":"Spacetime End","fields":[{"tags":[],"value":"Competition","name":"Robot"},{"tags":[],"value":2175,"name":"Team"},{"tags":[],"value":"Motor Data","name":"EventName"},{"tags":[],"value":3,"name":"ID"},{"tags":[],"value":-1,"name":"ParentID"}],"level":"INFO","timestamp":4}`;
+            function generateTimelineDataFromLog() {
+                const jsonData = {data: []}
+                const startStopData = {}
+                let spacetimeIDlist = []
+                let timelineData = []
+                let eventID;
+                let eventName;
+
+                rawData.split("\n").forEach((item) => {
+                    jsonData["data"].push(JSON.parse(item))
+                })
+                jsonData["data"].forEach((eventItem) => {
+                    if (eventItem["message"] == "Spacetime Start" || eventItem["message"] == "Spacetime End") {
+                        console.log(eventItem["message"])
+                        eventItem["fields"].forEach((item) => {
+                            if (item["name"] == "ID") {
+                                eventID = item["value"]
+                                if (startStopData[item["value"]] == undefined) {
+                                    startStopData[item["value"]] = {}
+                                }
+                                if (eventItem["message"] == "Spacetime Start") {
+                                    startStopData[item["value"]]["start"] = eventItem["timestamp"]
+                                }
+                                if (eventItem["message"] == "Spacetime End") {
+                                    startStopData[item["value"]]["end"] = eventItem["timestamp"]
+                                }
+                            }
+                            if(item["name"] == "EventName") {
+                                eventName = item["value"]
+                            }
+                        })
+                        if (spacetimeIDlist[eventID - 1] == undefined) {
+                            timelineData.push({id: eventID, content: eventName})
+                            spacetimeIDlist.push(eventID)
+                        }
+                    }
+                })
+
+                timelineData.forEach((item, index) => {
+                    item["start"] = startStopData[index + 1]["start"]
+                    item["end"] = startStopData[index + 1]["end"]
+                })
+                return timelineData;
+            }
+        </script>
+    </body>
+</html>
