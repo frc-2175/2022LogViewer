@@ -78,7 +78,6 @@ window.addEventListener("DOMContentLoaded", () => {
             div.style.top = `${30 * levels[event.id]}px`;
             div.style.padding = "2px 0px 0px 20px";
             div.style.lineHeight = "20px";
-            div.style.borderRadius = "25px";
             document.querySelector("#spacetime").appendChild(div);
             for(const child of event.children) {
                 renderEvent(child);
