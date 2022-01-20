@@ -1,56 +1,56 @@
 // Log viewer with spacetime map viewing capabilities
 
 // Variables that represent the horizontal (time) axis range
-let pageStart = 0
-let pageEnd = 40
-let maxEnd = 40
+let pageStart = 0;
+let pageEnd = 40;
+let maxEnd = 40;
 
 // The padding in the vertical direction on all of the graphs
-const verticalPadding = 10
+const verticalPadding = 10;
 
 // State variables for the series currently being plotted and a list of all
 // of the known data series from the log file
-let seriesToPlot = []
-let dataSeries = {}
+let seriesToPlot = [];
+let dataSeries = {};
 
 // State variables for time-axis resizing
-let resizing = false
-let mouseStart
+let resizing = false;
+let mouseStart;
 
-const colors = ["#6ca16a", "#ffa742", "#ba98ed", "#fa6e6e"]
-let currentColors = {}
+const colors = ["#6ca16a", "#ffa742", "#ba98ed", "#fa6e6e"];
+let currentColors = {};
 
 // This runs when the page loads once
 window.addEventListener("DOMContentLoaded", () => {
     (async () => {
         // Load all of the matches from the server
-        const matches = await loadMatches()
+        const matches = await loadMatches();
         
         // Populate the match selector with all of the values
         for(const match of matches) {
-            let matchOption = document.createElement("option")
-            matchOption.setAttribute("value", match)
-            matchOption.innerHTML = "Match " + match
-            document.querySelector("#matchSelect").appendChild(matchOption)
+            let matchOption = document.createElement("option");
+            matchOption.setAttribute("value", match);
+            matchOption.innerHTML = "Match " + match;
+            document.querySelector("#matchSelect").appendChild(matchOption);
         }
 
         // Load the log file and parse some data out of it
-        let logs = await loadMatch(getCurrentMatch())
-        let events = getSpacetimeEvents(logs)
-        let levels = getLevels(events)
-        dataSeries = getDataSeries(logs)
+        let logs = await loadMatch(getCurrentMatch());
+        let events = getSpacetimeEvents(logs);
+        let levels = getLevels(events);
+        dataSeries = getDataSeries(logs);
         
         // Update the log viewer when the current match changes
         document.querySelector("#matchSelect").addEventListener("change", async () => {
-            logs = await loadMatch(getCurrentMatch())
-            events = getSpacetimeEvents(logs)
-            levels = getLevels(events)
-            dataSeries = getDataSeries(logs)
-            seriesToPlot = []
-            pageStart = 0
-            pageEnd = maxEnd
-            renderOnResize()
-        })
+            logs = await loadMatch(getCurrentMatch());
+            events = getSpacetimeEvents(logs);
+            levels = getLevels(events);
+            dataSeries = getDataSeries(logs);
+            seriesToPlot = [];
+            pageStart = 0;
+            pageEnd = maxEnd;
+            renderOnResize();
+        });
 
         
         /**
@@ -59,101 +59,101 @@ window.addEventListener("DOMContentLoaded", () => {
          * @param {*} event the spacetime event to render on screen
          */
         function renderEvent(event) {
-            const mostParentID = getMostParentID(event, logs)
-            let color
+            const mostParentID = getMostParentID(event, logs);
+            let color;
             if(currentColors[mostParentID]) {
-                color = currentColors[mostParentID]
+                color = currentColors[mostParentID];
             } else {
-                color = colors[Object.keys(currentColors).length % (colors.length)]
-                currentColors[mostParentID] = color
+                color = colors[Object.keys(currentColors).length % (colors.length)];
+                currentColors[mostParentID] = color;
             }
 
-            const div = document.createElement("div")
-            div.textContent = event.name
-            div.style.position = "absolute"
-            div.style.height = "25px"
-            div.style.backgroundColor = color
-            div.style.width = `${(event.endTime - event.startTime) / (pageEnd - pageStart) * 100}%`
-            div.style.left = `${(event.startTime - pageStart) / (pageEnd - pageStart) * 100}%`
-            div.style.top = `${30 * levels[event.id]}px`
-            div.style.padding = "2px 0px 0px 20px"
-            div.style.lineHeight = "20px"
-            div.style.borderRadius = "25px"
-            document.querySelector("#spacetime").appendChild(div)
+            const div = document.createElement("div");
+            div.textContent = event.name;
+            div.style.position = "absolute";
+            div.style.height = "25px";
+            div.style.backgroundColor = color;
+            div.style.width = `${(event.endTime - event.startTime) / (pageEnd - pageStart) * 100}%`;
+            div.style.left = `${(event.startTime - pageStart) / (pageEnd - pageStart) * 100}%`;
+            div.style.top = `${30 * levels[event.id]}px`;
+            div.style.padding = "2px 0px 0px 20px";
+            div.style.lineHeight = "20px";
+            div.style.borderRadius = "25px";
+            document.querySelector("#spacetime").appendChild(div);
             for(const child of event.children) {
-                renderEvent(child)
+                renderEvent(child);
             }
         }
 
         // Render all of the events that were loaded from the log file
         for(const event of events) {
-            renderEvent(event)
+            renderEvent(event);
         }
         
         /** 
          * A function to be called whenever the window is resized
          */
         function renderOnResize() {
-            document.querySelector("#spacetime").innerHTML = ""
+            document.querySelector("#spacetime").innerHTML = "";
 
             for(const event of events) {
-                renderEvent(event)
+                renderEvent(event);
             }
-            renderTopBar()
+            renderTopBar();
             for(let series of seriesToPlot) {
-                series.canvas.setAttribute("width", document.body.clientWidth)
+                series.canvas.setAttribute("width", document.body.clientWidth);
             }
-            refresh()
-            document.querySelector("#overlayCanvas").setAttribute("width", document.body.clientWidth)
-            document.querySelector("#overlayCanvas").setAttribute("height", window.innerHeight)
+            refresh();
+            document.querySelector("#overlayCanvas").setAttribute("width", document.body.clientWidth);
+            document.querySelector("#overlayCanvas").setAttribute("height", window.innerHeight);
         }
 
         // This adds the previously defined function as an event listener for 
         // the window resize event
-        window.addEventListener("resize", renderOnResize)
+        window.addEventListener("resize", renderOnResize);
 
         // This event listener finishes the resizing of the time axis when the 
         // mouse is unclicked. Needs to be async to call renderOnResize()
         document.body.addEventListener("mouseup", e => {
             if(resizing) {
                 resizing = false
-                const ctx = overlayCanvas.getContext("2d")
-                ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height)
-                drawLine(ctx, e.clientX, 0, e.clientX, overlayCanvas.height, 2)
+                const ctx = overlayCanvas.getContext("2d");
+                ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+                drawLine(ctx, e.clientX, 0, e.clientX, overlayCanvas.height, 2);
 
-                let click = (mouseStart / window.innerWidth) * (pageEnd - pageStart) + pageStart
-                let unclick = (e.clientX / window.innerWidth) * (pageEnd - pageStart) + pageStart
+                let click = (mouseStart / window.innerWidth) * (pageEnd - pageStart) + pageStart;
+                let unclick = (e.clientX / window.innerWidth) * (pageEnd - pageStart) + pageStart;
 
                 if(Math.abs(mouseStart - e.clientX) > 20) {
-                    pageStart = e.clientX > mouseStart ? click : unclick
-                    pageEnd = e.clientX > mouseStart ? unclick : click
-                    renderOnResize()
+                    pageStart = e.clientX > mouseStart ? click : unclick;
+                    pageEnd = e.clientX > mouseStart ? unclick : click;
+                    renderOnResize();
                 }
             }
-        })
+        });
 
         function resetZoom() {
-            pageStart = 0
-            pageEnd = maxEnd
-            renderOnResize()
+            pageStart = 0;
+            pageEnd = maxEnd;
+            renderOnResize();
         }
 
         // Adds a reset zoom event listener to the corresponding button
-        document.querySelector("#resetZoom").addEventListener("click", resetZoom)
+        document.querySelector("#resetZoom").addEventListener("click", resetZoom);
         document.body.addEventListener("keydown", (event) => {if (event.code == "Space") {resetZoom()}});
         
         // Renders the horizontal axis at the top of the screen
-        renderTopBar()
+        renderTopBar();
     })() // End of async zone!
     
     // Whenever the add series button is clicked, the series that is currently
     // selected under the series selector drop down is then added to our list
     // of currently plotted series and then the graphs are refreshed.
     document.querySelector("#addSeriesButton").addEventListener("click", e => {
-        e.stopPropagation()
-        const canvas = document.createElement("canvas")
-        canvas.setAttribute("width", document.body.clientWidth)
-        canvas.setAttribute("height", 200)
+        e.stopPropagation();
+        const canvas = document.createElement("canvas");
+        canvas.setAttribute("width", document.body.clientWidth);
+        canvas.setAttribute("height", 200);
 
         seriesToPlot.push({
             name: document.querySelector("#seriesSelector").value,
@@ -165,47 +165,47 @@ window.addEventListener("DOMContentLoaded", () => {
 
     // This section sets the width and height of the overlay canvas to be the 
     // full screen width and height
-    const overlayCanvas = document.querySelector("#overlayCanvas")
-    overlayCanvas.setAttribute("width", window.innerWidth)
-    overlayCanvas.setAttribute("height", window.innerHeight)
+    const overlayCanvas = document.querySelector("#overlayCanvas");
+    overlayCanvas.setAttribute("width", window.innerWidth);
+    overlayCanvas.setAttribute("height", window.innerHeight);
 
     // Adds an overlay redraw action to the event listener for mouse movement
     document.body.addEventListener("mousemove", e => {
-        const ctx = overlayCanvas.getContext("2d")
-        ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height)
+        const ctx = overlayCanvas.getContext("2d");
+        ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
         if(!resizing) {
-            drawLine(ctx, e.clientX, 0, e.clientX, overlayCanvas.height, 3, "#000")
+            drawLine(ctx, e.clientX, 0, e.clientX, overlayCanvas.height, 3, "#000");
         } else {
-            ctx.fillStyle = "#003cc7"
-            ctx.fillRect(mouseStart, 0, e.clientX - mouseStart, overlayCanvas.height)
+            ctx.fillStyle = "#003cc7";
+            ctx.fillRect(mouseStart, 0, e.clientX - mouseStart, overlayCanvas.height);
         }
     })
 
     // Starts the resizing process of the time axis when the mouse is clicked
     document.body.addEventListener("mousedown", e => {
-        resizing = true
-        mouseStart = e.clientX
+        resizing = true;
+        mouseStart = e.clientX;
     })
 
     // Stops the mouse up and down events from activating on any selector
     document.querySelectorAll("select").forEach(element => {
         element.addEventListener("mouseup", e => {
-            e.stopPropagation()
+            e.stopPropagation();
         })
         
         element.addEventListener("mousedown", e => {
-            e.stopPropagation()
+            e.stopPropagation();
         })
-    })
+    });
 
 
     // Makes the body fullscreen so that the mouse event listeners activate
     // everywhere on the page
-    document.body.style.position = "absolute"
-    document.body.style.top = "0"
-    document.body.style.bottom = "0"
-    document.body.style.left = "0"
-    document.body.style.right = "0"
+    document.body.style.position = "absolute";
+    document.body.style.top = "0";
+    document.body.style.bottom = "0";
+    document.body.style.left = "0";
+    document.body.style.right = "0";
 })
 
 /**
@@ -214,43 +214,43 @@ window.addEventListener("DOMContentLoaded", () => {
  */
 function refresh() {
     if(document.querySelector("#data").children.length !== seriesToPlot.length) {
-        document.querySelector("#data").innerHTML = ""
+        document.querySelector("#data").innerHTML = "";
         for(const series of seriesToPlot) {
-            const div = document.createElement("div")
-            div.setAttribute("data-series", series.name)
-            div.setAttribute("class", "graphDiv")
-            document.querySelector("#data").appendChild(div)
-            div.appendChild(series.canvas)
+            const div = document.createElement("div");
+            div.setAttribute("data-series", series.name);
+            div.setAttribute("class", "graphDiv");
+            document.querySelector("#data").appendChild(div);
+            div.appendChild(series.canvas);
 
-            const closeButton = document.createElement("button")
-            closeButton.innerHTML = "x"
-            closeButton.setAttribute("class", "closeButton")
+            const closeButton = document.createElement("button");
+            closeButton.innerHTML = "x";
+            closeButton.setAttribute("class", "closeButton");
             closeButton.addEventListener("click", () => {
-                seriesToPlot = seriesToPlot.filter(currentSeries => currentSeries.name !== series.name)
-                refresh()
+                seriesToPlot = seriesToPlot.filter(currentSeries => currentSeries.name !== series.name);
+                refresh();
             })
 
-            div.appendChild(closeButton)
+            div.appendChild(closeButton);
         }
     } 
     
     for(const series of seriesToPlot) {
-        graphDataOnCanvas(dataSeries[series.name], series.canvas)
+        graphDataOnCanvas(dataSeries[series.name], series.canvas);
     }
 }
 
 async function loadMatches() {
-    const response = await fetch("index.txt")
-    //if(!response.ok) {
-        //console.error("The response wasn't okay", response)
-        //return
-    //}
-    let responseText = await response.text()
-    responseText = responseText.split("\n")
-    for(let i = 0; i < responseText.length; i++) {
-        responseText[i] = responseText[i].split(".")[0]
+    const response = await fetch("http://localhost:9000");
+    if(!response.ok) {
+        console.error("The response wasn't okay", response)
+        return
     }
-    return responseText
+    let responseText = await response.text();
+    responseText = responseText.split("\n");
+    for(let i = 0; i < responseText.length; i++) {
+        responseText[i] = responseText[i].split(".")[0];
+    }
+    return responseText;
 }
 
 /**
@@ -260,63 +260,62 @@ async function loadMatches() {
  * @returns a list of log messages in JSON
  */
 async function loadMatch(match) {
-    const response = await fetch(`TestData/${match}.log`)
-    //Who needs error handleing
-    //if(!response.ok) {
-        //console.error("The response wasn't okay", response)
-        //return
-    //}
+    const response = await fetch(`http://localhost:9000/${match}.log`);
+    if(!response.ok) {
+        console.error("The response wasn't okay", response)
+        return
+    }
 
-    const matchText = await response.text()
-    const logMessages = []
+    const matchText = await response.text();
+    const logMessages = [];
     for(const logMessage of matchText.split("\n")) {
         try {
             if(logMessage) {
-                logMessages.push(JSON.parse(logMessage))
+                logMessages.push(JSON.parse(logMessage));
             }
         } catch(e) {
-            console.warn("Uh maybe the json parsing didn't go so well there", e, logMessage)
+            console.warn("Uh maybe the json parsing didn't go so well there", e, logMessage);
         }
     }
 
-    let dataSeriesNames = []
+    let dataSeriesNames = [];
     for(const logMessage of logMessages) {
         for(const logField of logMessage.fields) {
             if(logField.name.toLowerCase().includes("data")) {
-                let redundant = false
+                let redundant = false;
                 for(const seriesName of dataSeriesNames) {
                     if(seriesName === logField.name) {
-                        redundant = true
+                        redundant = true;
                     }
                 }
                 if(!redundant) {
-                    dataSeriesNames.push(logField.name)
+                    dataSeriesNames.push(logField.name);
                 }
             }
         }
     }
 
-    document.querySelector("#seriesSelector").innerHTML = ""
+    document.querySelector("#seriesSelector").innerHTML = "";
     for(let dataSeriesName of dataSeriesNames) {
-        const option = document.createElement("option")
-        option.setAttribute("value", dataSeriesName.slice(5))
-        document.querySelector("#seriesSelector").appendChild(option)
-        option.innerHTML = dataSeriesName.slice(5)
+        const option = document.createElement("option");
+        option.setAttribute("value", dataSeriesName.slice(5));
+        document.querySelector("#seriesSelector").appendChild(option);
+        option.innerHTML = dataSeriesName.slice(5);
     }
 
     // Determine the maximum timestamp present in the logs to set
     // the time axis range for the page
     let timestamps = []
     for(let log of logMessages) {
-        timestamps.push(log.timestamp)
+        timestamps.push(log.timestamp);
     }
 
-    maxEnd = timestamps.reduce((max, current) => max > current ? max : current)
+    maxEnd = timestamps.reduce((max, current) => max > current ? max : current);
     // Add 5% padding on to the end
-    maxEnd += maxEnd / 20
-    pageEnd = maxEnd
+    maxEnd += maxEnd / 20;
+    pageEnd = maxEnd;
 
-    return logMessages
+    return logMessages;
 }
 
 /**
@@ -325,12 +324,12 @@ async function loadMatch(match) {
  * @returns formatted spacetime events
  */
 function getSpacetimeEvents(logs) {
-    const spacetimeEvents = []
-    const inProgressEvents = {}
+    const spacetimeEvents = [];
+    const inProgressEvents = {};
     for(const log of logs) {
         if(log.message === "Spacetime Start" || log.message === "Spacetime End") {
-            const eventName = log.fields.find(field => field.name === "EventName").value
-            const id = log.fields.find(field => field.name === "ID").value
+            const eventName = log.fields.find(field => field.name === "EventName").value;
+            const id = log.fields.find(field => field.name === "ID").value;
             if(log.message === "Spacetime Start") {
                 inProgressEvents[id] = {
                     name: eventName,
@@ -341,20 +340,20 @@ function getSpacetimeEvents(logs) {
                     children: [],
                 }
             } else {
-                inProgressEvents[id].endTime = log.timestamp
+                inProgressEvents[id].endTime = log.timestamp;
             }
         }
     }
 
     for(const event of Object.values(inProgressEvents)) {
         if(event.parentID === -1) {
-            spacetimeEvents.push(event)
+            spacetimeEvents.push(event);
         } else {
-            inProgressEvents[event.parentID].children.push(event)
+            inProgressEvents[event.parentID].children.push(event);
         }
     }
 
-    return spacetimeEvents
+    return spacetimeEvents;
 }
 
 /**
@@ -363,32 +362,32 @@ function getSpacetimeEvents(logs) {
  * @param {*} spacetimeEvents 
  */
 function sortIntoTracks(spacetimeEvents) {
-    const sortedTracks = []
+    const sortedTracks = [];
     for(const event of spacetimeEvents) {
-        let trackIndex = 0
+        let trackIndex = 0;
         while(trackIndex < sortedTracks.length) {
-            const track = sortedTracks[trackIndex]
-            let overlapped = false
+            const track = sortedTracks[trackIndex];
+            let overlapped = false;
             for(const trackEvent of track) {
                 if(doEventsOverlap(event, trackEvent)) {
-                    overlapped = true
-                    break
+                    overlapped = true;
+                    break;
                 }
             }
             if(!overlapped) {
-                track.push(event)
-                break
+                track.push(event);
+                break;
             } else {
-                trackIndex++
+                trackIndex++;
             }
         }
 
         if(trackIndex >= sortedTracks.length) {
-            sortedTracks.push([event])
+            sortedTracks.push([event]);
         } 
     }
 
-    return sortedTracks
+    return sortedTracks;
 }
 
 /**
@@ -399,23 +398,23 @@ function sortIntoTracks(spacetimeEvents) {
  * @returns the combined height of all of those events
  */
 function getHeightOfEvents(events, levels, currentLevel) {
-    sortedTracks = sortIntoTracks(events)
-    let height = 0
+    sortedTracks = sortIntoTracks(events);
+    let height = 0;
     for(const track of sortedTracks) {
-        const eventHeights = track.map(event => getHeightOfEvent(event, levels, currentLevel + height))
-        const maxHeight = eventHeights.reduce((currentMax, height) => height > currentMax ? height : currentMax)
-        height += maxHeight
+        const eventHeights = track.map(event => getHeightOfEvent(event, levels, currentLevel + height));
+        const maxHeight = eventHeights.reduce((currentMax, height) => height > currentMax ? height : currentMax);
+        height += maxHeight;
     }
 
-    return height
+    return height;
 }
 
 /** 
  * Gets the height of just one event and recurses back into the getHeightOfEvents
 */
 function getHeightOfEvent(event, levels, currentLevel) {
-    levels[event.id] = currentLevel
-    return 1 + getHeightOfEvents(event.children, levels, currentLevel + 1)
+    levels[event.id] = currentLevel;
+    return 1 + getHeightOfEvents(event.children, levels, currentLevel + 1);
 }
 
 /**
@@ -424,9 +423,9 @@ function getHeightOfEvent(event, levels, currentLevel) {
  * @returns a list of levels that will contain the level of each spacetime event
  */
 function getLevels(events) {
-    const levels = {}
-    getHeightOfEvents(events, levels, 0)
-    return levels
+    const levels = {};
+    getHeightOfEvents(events, levels, 0);
+    return levels;
 }
 
 /**
@@ -435,18 +434,18 @@ function getLevels(events) {
  * @returns a list of data series each containing points
  */
 function getDataSeries(logs) {
-    const dataSeries = {}
+    const dataSeries = {};
     for(const log of logs) {
-        let dataFields = log.fields.filter(field => field.name.toLowerCase().startsWith("data"))
+        let dataFields = log.fields.filter(field => field.name.toLowerCase().startsWith("data"));
         for(const dataField of dataFields) {
-            const nameOfSeries = dataField.name.slice(5)
+            const nameOfSeries = dataField.name.slice(5);
             if(dataSeries[nameOfSeries] === undefined) {
                 dataSeries[nameOfSeries] = {
                     points: []
                 }
             }
 
-            dataSeries[nameOfSeries].points.push({ time: log.timestamp, value: dataField.value })
+            dataSeries[nameOfSeries].points.push({ time: log.timestamp, value: dataField.value });
         }
     }
 
@@ -459,39 +458,39 @@ function getDataSeries(logs) {
  * @param {*} canvas the canvas to plot on
  */
 function graphDataOnCanvas(dataSeries, canvas) {
-    const ctx = canvas.getContext("2d")
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-    const maxValue = Math.max(...dataSeries.points.map(point => point.value))
-    const minValue = Math.min(...dataSeries.points.map(point => point.value))
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const maxValue = Math.max(...dataSeries.points.map(point => point.value));
+    const minValue = Math.min(...dataSeries.points.map(point => point.value));
 
     function convertToPixels(point) {
-        const x = (point.time - pageStart) / (pageEnd - pageStart) * canvas.width
-        const y = (maxValue - point.value)  / (maxValue - minValue) * (canvas.height - verticalPadding * 2) + verticalPadding
-        return [x, y]
+        const x = (point.time - pageStart) / (pageEnd - pageStart) * canvas.width;
+        const y = (maxValue - point.value)  / (maxValue - minValue) * (canvas.height - verticalPadding * 2) + verticalPadding;
+        return [x, y];
     }
 
     for(const point of dataSeries.points) {
-        const [x, y] = convertToPixels(point)
-        drawCircle(ctx, x, y, 5)
+        const [x, y] = convertToPixels(point);
+        drawCircle(ctx, x, y, 5);
     }
 
     for(let i = 1; i < dataSeries.points.length; i++) {
-        const point1 = dataSeries.points[i - 1]
-        const point2 = dataSeries.points[i]
-        const [x1, y1] = convertToPixels(point1)
-        const [x2, y2] = convertToPixels(point2)
+        const point1 = dataSeries.points[i - 1];
+        const point2 = dataSeries.points[i];
+        const [x1, y1] = convertToPixels(point1);
+        const [x2, y2] = convertToPixels(point2);
 
-        drawLine(ctx, x1, y1, x2, y2)
+        drawLine(ctx, x1, y1, x2, y2);
     }
 
-    drawLine(ctx, 5, verticalPadding, 5, canvas.height - verticalPadding)
+    drawLine(ctx, 5, verticalPadding, 5, canvas.height - verticalPadding);
     for(let i = 0; i < 5; i++) {
-        let paddingHeight = (canvas.height - verticalPadding * 2)
-        let height = i * paddingHeight / 4 + verticalPadding
-        let heightInUnits = (paddingHeight - height) / paddingHeight * (maxValue - minValue) + minValue
-        drawLine(ctx, 5, height, 20, height)
-        drawText(ctx, Math.round(heightInUnits * 100) / 100, {x: 27, y: height + 5})
-        drawLine(ctx, 60, height, canvas.width, height, 1, "#aaa")
+        let paddingHeight = (canvas.height - verticalPadding * 2);
+        let height = i * paddingHeight / 4 + verticalPadding;
+        let heightInUnits = (paddingHeight - height) / paddingHeight * (maxValue - minValue) + minValue;
+        drawLine(ctx, 5, height, 20, height);
+        drawText(ctx, Math.round(heightInUnits * 100) / 100, {x: 27, y: height + 5});
+        drawLine(ctx, 60, height, canvas.width, height, 1, "#aaa");
     }
 }
 
@@ -501,36 +500,36 @@ function graphDataOnCanvas(dataSeries, canvas) {
  * @param {*} event2 
  */
 function doEventsOverlap(event1, event2) {
-    return event1.startTime < event2.endTime && event1.endTime > event2.startTime
+    return event1.startTime < event2.endTime && event1.endTime > event2.startTime;
 }
 
 /**
  * Renders the horizontal axis at the top of the screen
  */
 function renderTopBar() {
-    let canvas = document.querySelector("#topBarCanvas")
-    canvas.setAttribute("width", document.body.clientWidth)
-    canvas.setAttribute("height", 50)
-    let ctx = canvas.getContext("2d")
-    drawLine(ctx, 0, 0, canvas.width, 0, 8)
+    let canvas = document.querySelector("#topBarCanvas");
+    canvas.setAttribute("width", document.body.clientWidth);
+    canvas.setAttribute("height", 50);
+    let ctx = canvas.getContext("2d");
+    drawLine(ctx, 0, 0, canvas.width, 0, 8);
     for(let i = 0; i < 20; i++) {
-        let horizontalPos = i * canvas.width / 19
-        let horizontalPosInUnits = horizontalPos / canvas.width * (pageEnd - pageStart) + pageStart
-        drawLine(ctx, horizontalPos, 3, horizontalPos, 12)
-        drawText(ctx, Math.round(horizontalPosInUnits * 10) / 10, {x: horizontalPos - 12, y: 28})
+        let horizontalPos = i * canvas.width / 19;
+        let horizontalPosInUnits = horizontalPos / canvas.width * (pageEnd - pageStart) + pageStart;
+        drawLine(ctx, horizontalPos, 3, horizontalPos, 12);
+        drawText(ctx, Math.round(horizontalPosInUnits * 10) / 10, {x: horizontalPos - 12, y: 28});
     }
 }
 
 function getCurrentMatch() {
-    return document.querySelector("#matchSelect").value
+    return document.querySelector("#matchSelect").value;
 }
 
 function getMostParentID(event, logs) {
     // console.log(event)
     // console.log(logs)
-    let parentID = event.parentID
+    let parentID = event.parentID;
     if(parentID === -1) {
-        return event.id
+        return event.id;
     } else {
         let parent
         for(const log of logs) {
@@ -540,11 +539,11 @@ function getMostParentID(event, logs) {
                     id: log.fields.find(field => field.name === "ID").value,
                     parentID: log.fields.find(field => field.name === "ParentID").value,
                 }
-                break
+                break;
             }
         }
         // console.log("parent event: ", parent)
-        return getMostParentID(parent, logs)
+        return getMostParentID(parent, logs);
     }
 }
 
