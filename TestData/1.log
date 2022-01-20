@@ -1,9 +1,7 @@
-{"level":"INFO","message":"Spacetime Start","fields":[{"name":"Robot","value":"Competition","tags":[]},{"name":"Team","value":2175,"tags":[]},{"name":"EventName","value":"Auto1Parent","tags":[]},{"name":"ID","value":0,"tags":[]},{"name":"ParentID","value":-1,"tags":[]}],"timestamp":1}
-{"level":"INFO","message":"Spacetime Start","fields":[{"name":"Robot","value":"Competition","tags":[]},{"name":"Team","value":2175,"tags":[]},{"name":"EventName","value":"Auto1Child1","tags":[]},{"name":"ID","value":1,"tags":[]},{"name":"ParentID","value":0,"tags":[]}],"timestamp":3}
-{"level":"INFO","message":"Spacetime End","fields":[{"name":"Robot","value":"Competition","tags":[]},{"name":"Team","value":2175,"tags":[]},{"name":"EventName","value":"Auto1Child1","tags":[]},{"name":"ID","value":1,"tags":[]},{"name":"ParentID","value":0,"tags":[]}],"timestamp":5}
-{"level":"INFO","message":"Spacetime Start","fields":[{"name":"Robot","value":"Competition","tags":[]},{"name":"Team","value":2175,"tags":[]},{"name":"EventName","value":"Auto1Child2","tags":[]},{"name":"ID","value":2,"tags":[]},{"name":"ParentID","value":0,"tags":[]}],"timestamp":7}
-{"level":"INFO","message":"Talon1 Data","fields":[{"name":"Robot","value":"Competition","tags":[]},{"name":"Team","value":2175,"tags":[]},{"name":"Output","value":0.84,"tags":[]},{"name":"CurrentDraw","value":5,"tags":[]}],"timestamp":9}
-{"level":"INFO","message":"Spacetime Start","fields":[{"name":"Robot","value":"Competition","tags":[]},{"name":"Team","value":2175,"tags":[]},{"name":"EventName","value":"Auto1Child2Child1","tags":[]},{"name":"ID","value":3,"tags":[]},{"name":"ParentID","value":2,"tags":[]}],"timestamp":11}
-{"level":"INFO","message":"Spacetime End","fields":[{"name":"Robot","value":"Competition","tags":[]},{"name":"Team","value":2175,"tags":[]},{"name":"EventName","value":"Auto1Child2Child1","tags":[]},{"name":"ID","value":3,"tags":[]},{"name":"ParentID","value":2,"tags":[]}],"timestamp":13}
-{"level":"INFO","message":"Spacetime End","fields":[{"name":"Robot","value":"Competition","tags":[]},{"name":"Team","value":2175,"tags":[]},{"name":"EventName","value":"Auto1Child2","tags":[]},{"name":"ID","value":2,"tags":[]},{"name":"ParentID","value":0,"tags":[]}],"timestamp":15}
-{"level":"INFO","message":"Spacetime End","fields":[{"name":"Robot","value":"Competition","tags":[]},{"name":"Team","value":2175,"tags":[]},{"name":"EventName","value":"Auto1Parent","tags":[]},{"name":"ID","value":0,"tags":[]},{"name":"ParentID","value":-1,"tags":[]}],"timestamp":17}
+{"type": "event","message": "eventName","id": 1,"time": 0.5,"parent": -1}
+{"type": "event","message": "eventBlock","id": 2,"time": 2,"parent": -1}
+{"type": "data","name": "dataName","time": 3.5,"value": {"speed": 3,"current": 4}}
+{"type": "data","name": "dataName","time": 4,"value": {"speed": 4,"current": 3}}
+{"type": "event","id": 2,"time": 5}
+{"type": "event","message": "eventBlock2","id": 3,"time": 2.5,"parent": -1}
+{"type": "event","id": 3,"time": 4.5}
