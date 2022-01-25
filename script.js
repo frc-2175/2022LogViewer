@@ -273,7 +273,10 @@ async function loadMatch(match) {
 		return;
 	}
 
-	const logMessages = (await response.text()).split("\n").map(message => JSON.parse(message));
+	const logMessages = (await response.text())
+		.split("\n")
+		.filter(value => Object.keys(value).length !== 0)
+		.map(message => JSON.parse(message));
 
 	let dataSeriesNames = [];
 	for (const logMessage of logMessages.filter(message => message.type === "data")) {
@@ -293,7 +296,7 @@ async function loadMatch(match) {
 	// the time axis range for the page
 	let timestamps = logMessages.map(message => message.time);
 
-	maxEnd = timestamps.reduce((max, current) => max > current ? max : current);
+	maxEnd = Math.max(...timestamps, 5);
 	// Add 5% padding on to the end
 	pageEnd = maxEnd * 1.05;
 

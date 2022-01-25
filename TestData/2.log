@@ -1,0 +1,4 @@
+{"type":"event","id":0,"time":0.327712,"message":"test","parent":-1}
+{"type":"event","id":0,"time":0.327928,"message":"test","parent":-1}
+{"type":"data","name":"MotorCurrent","time":0.328012,"value":{"speed":5}}
+{"type":"data","name":"MotorCurrent","time":0.328077,"value":{"speed":6}}
