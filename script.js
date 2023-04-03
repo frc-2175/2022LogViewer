@@ -325,16 +325,16 @@ function getSpacetimeEvents(logs) {
 		}
 	}
 
-	const spacetimeEvents = Object.values(inProgressEvents).filter(event => event.endTime !== null)
-		.map(event => {
-			if (event.parentID === -1) {
-				return event;
-			} else {
-				inProgressEvents[event.parentID].children.push(event);
-			}
-		});
+	// Build children arrays on all events
+	const events = Object.values(inProgressEvents).filter(event => event.endTime !== null);
+	for (const event of events) {
+		if (event.parentID !== -1) {
+			inProgressEvents[event.parentID].children.push(event);
+		}
+	}
 
-	return spacetimeEvents;
+	// And then return only top-level events
+	return events.filter(event => event.parentID === -1);
 }
 
 function getPointEvents(logs) {
